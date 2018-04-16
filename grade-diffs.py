@@ -3,6 +3,7 @@
 from __future__ import print_function
 
 import json
+import shutil
 import pprint
 import argparse
 import textwrap
@@ -166,11 +167,18 @@ if __name__ == "__main__":
 
        
     if args.reference:
+       if (os.path.isdir(reference_dir)):
+          print("Removing old directory: ",reference_dir)
+          try:
+             shutil.rmtree(reference_dir)
+          except Exception:
+             haltWithError("Error: was unable to remove " + reference_dir)
+
        print("Creating directory ",reference_dir,"...")
        try:
           os.mkdir(reference_dir)
-       except FileExistsError:
-          haltWithError("Error: " + reference_dir + " already exists.  Please delete it before proceeding")
+       except Exception:
+          haltWithError("Error: was unable to create " + reference_dir)
 
        for ta in testAnnotations:
           generateOutput(args,ta,reference_dir)
