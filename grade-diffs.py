@@ -4,7 +4,6 @@ from __future__ import print_function
 
 import json
 import shutil
-import pprint
 import argparse
 import textwrap
 import subprocess
@@ -15,7 +14,9 @@ from jsonschema import validate
 from jsonschema import ValidationError
 from json.decoder import JSONDecodeError
 from pprint import pprint
+from pprint import pformat
 import time
+import difflib
 
 testSchema ={
   "type": "object",
@@ -144,16 +145,24 @@ def extractTestAnnotations(args):
                  prevLineWasTestAnnotation = True
     return testAnnotations
 
-def outputDir(args):
-   if args.reference:
+def outputDir(args,isReference):
+   if isReference:
      return args.script + "-reference"        
    else:
      return args.script + "-student"
-  
+
+def makeGSTest(ta,stdout_or_stderr):
+  result = {}
+  if "name" in ta["test"]:
+    result["name"]=ta["test"]["name"]
+  else:
+    result["name"]="Checking " + stdout_or_stderr + " from " + ta["shell_command"].strip()
+  return result
+   
 def generateOutput(args,testAnnotations):
    
   " generate the reference or student output by running each command "
-  output_dir = outputDir(args)
+  output_dir = outputDir(args,args.reference)
   if (os.path.isdir(output_dir)):
      print("Removing old directory: ",output_dir)
      try:
@@ -177,7 +186,27 @@ def generateOutput(args,testAnnotations):
          shutil.copy2(filename,output_dir)
        else:
          touch(os.path.join(output_dir,filename+"-MISSING"))
-                 
+
+def checkDiffsFor(args,ta,stdout_or_stderr,gsTests):
+          test = ta["test"]                        
+          if stdout_or_stderr in test:
+            gsTest = makeGSTest(ta,stdout_or_stderr)
+            gsTest["max_score"] = test[stdout_or_stderr] 
+            referenceFilename = resultFile(outputDir(args,True),ta,stdout_or_stderr)
+            studentFilename = resultFile(outputDir(args,False),ta,stdout_or_stderr)
+            with open(referenceFilename) as f1, open(studentFilename) as f2:
+              diffs = list(difflib.context_diff(f1.readlines(),f2.readlines(),
+                                           fromfile="expected",tofile="actual"))
+            
+            if (len(diffs)==0):
+              gsTest["score"]=gsTest["max_score"]
+            else:
+              gsTest["score"]=0
+            gsTest["output"]="\n".join(diffs)
+            gsTests.append(gsTest)  
+         
+
+         
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='Generate Gradescope compatible results.json for diff-based testing',
@@ -217,14 +246,14 @@ if __name__ == "__main__":
        
        results = loadResultsJsonIfExists()
 
-       # THIS IS THE PLACE IN THE CODE WHERE YOU ADD TESTS into the results["tests"] array.
-       # THIS IS WHERE WE WILL NEED TO DO THE DIFFS.
-
-       for ta in testAnnotations:
-          if args.verbose > 0:
-             pprint(ta)
-          pass
+       gsTests = []
        
+       for ta in testAnnotations:
+          checkDiffsFor(args,ta,"stdout",gsTests)
+          checkDiffsFor(args,ta,"stderr",gsTests)
+
+       results["tests"] += gsTests
+          
        with open('results.json', 'w') as outfile:
           json.dump(results, outfile)
 
