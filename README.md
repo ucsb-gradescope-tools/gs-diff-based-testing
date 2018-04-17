@@ -74,16 +74,17 @@ In order to keep the tools simple, there are a few restrictions.   These may be 
 
     That is, both test annotations and the shell command that immediately follows a test annotation must appear on a single line.
 
-2.  Currently, the shell command must be something that is legal to pass to Python 3's `subprocess.Popen` method, using:
+2.  Currently, the shell command must be something that is legal to pass to Python 3's `subprocess.call` method, using:
 
    ```python
-   subprocess.Popen(shell_command.strip().split(" "))
+   subprocess.call(shell_command.strip().split(" "))
    ```
 
    This may restrict the use of certain shell commands, redirection options, and so forth.   Future versions might relax
    this restriction by porting some of the code from Python3 to directly interacting with the bash shell.
 
 # How to use these tools
+
 
 
 
