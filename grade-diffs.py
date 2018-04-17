@@ -187,25 +187,44 @@ def generateOutput(args,testAnnotations):
        else:
          touch(os.path.join(output_dir,filename+"-MISSING"))
 
-def checkDiffsFor(args,ta,stdout_or_stderr,gsTests):
-          test = ta["test"]                        
-          if stdout_or_stderr in test:
-            gsTest = makeGSTest(ta,stdout_or_stderr)
-            gsTest["max_score"] = test[stdout_or_stderr] 
-            referenceFilename = resultFile(outputDir(args,True),ta,stdout_or_stderr)
-            studentFilename = resultFile(outputDir(args,False),ta,stdout_or_stderr)
-            with open(referenceFilename) as f1, open(studentFilename) as f2:
-              diffs = list(difflib.context_diff(f1.readlines(),f2.readlines(),
-                                           fromfile="expected",tofile="actual"))
-            
-            if (len(diffs)==0):
-              gsTest["score"]=gsTest["max_score"]
-            else:
-              gsTest["score"]=0
-            gsTest["output"]="\n".join(diffs)
-            gsTests.append(gsTest)  
+def checkDiffs(args,ta,stdout_or_stderr,gsTests):
+  test = ta["test"]                        
+  if stdout_or_stderr in test:
+    gsTest = makeGSTest(ta,stdout_or_stderr)
+    gsTest["max_score"] = test[stdout_or_stderr] 
+    referenceFilename = resultFile(outputDir(args,True),ta,stdout_or_stderr)
+    studentFilename = resultFile(outputDir(args,False),ta,stdout_or_stderr)
+    performDiff(args,ta,gsTest,gsTests,referenceFilename,studentFilename)            
          
+def checkDiffsForFilename(args,ta,gsTests):
+  test = ta["test"]                        
+  if "filename" in test:
+    filename = test["filename"]
+    gsTest = makeGSTest(ta,"Output file " + filename)
+    gsTest["max_score"] = test["points"]
+    referenceFilename = os.path.join(outputDir(args,True),filename)
+    studentFilename = os.path.join(outputDir(args,False),filename)
+    if (not os.path.isfile(referenceFilename)):
+      haltWithError("No output for " + filename + " for reference solution")
+    if (os.path.isfile(studentFilename + "-MISSING")):
+      gsTest["score"]=0
+      gsTest["output"]="Missing output in student solution for " + filename
+      gsTests.append(gsTest)            
+    else:
+      performDiff(args,ta,gsTest,gsTests,referenceFilename,studentFilename)
 
+
+def performDiff(args,ts,gsTest,gsTests,referenceFilename,studentFilename):
+  with open(referenceFilename) as f1, open(studentFilename) as f2:
+    diffs = list(difflib.context_diff(f1.readlines(),f2.readlines(),
+                                      fromfile="expected",tofile="actual"))            
+    if (len(diffs)==0):
+      gsTest["score"]=gsTest["max_score"]
+    else:
+      gsTest["score"]=0
+      gsTest["output"]="\n".join(diffs)
+    gsTests.append(gsTest)  
+            
          
 if __name__ == "__main__":
 
@@ -243,15 +262,21 @@ if __name__ == "__main__":
     generateOutput(args,testAnnotations)
     
     if not args.reference:
-       
+
+       reference_dir = outputDir(args,True)
+       if (not os.path.isdir(reference_dir)):
+         haltWithError("Cannot perform diff; reference output "+reference_dir+"not found")
+
+      
        results = loadResultsJsonIfExists()
 
        gsTests = []
        
        for ta in testAnnotations:
-          checkDiffsFor(args,ta,"stdout",gsTests)
-          checkDiffsFor(args,ta,"stderr",gsTests)
-
+          checkDiffs(args,ta,"stdout",gsTests)
+          checkDiffs(args,ta,"stderr",gsTests)
+          checkDiffsForFilename(args,ta,gsTests)
+          
        results["tests"] += gsTests
           
        with open('results.json', 'w') as outfile:
