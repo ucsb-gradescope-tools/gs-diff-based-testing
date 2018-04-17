@@ -15,6 +15,7 @@ from jsonschema import validate
 from jsonschema import ValidationError
 from json.decoder import JSONDecodeError
 from pprint import pprint
+import time
 
 testSchema ={
   "type": "object",
@@ -47,6 +48,12 @@ testSchema ={
   "additionalProperties": False
 }
 
+
+def touch(path):
+  "from https://stackoverflow.com/questions/12654772/create-empty-file-using-python"
+  with open(path, 'a'):
+    os.utime(path, None)
+    
 
 def lineToTestAnnotation(args,line,linenumber):
    """
@@ -99,13 +106,15 @@ def haltWithError(message):
     sys.exit(1)
 
 
-def generateOutput(args,ta,reference_dir):
-
-   stdoutFilename = os.path.join(reference_dir,  "%05d.stderr" % ta["linenumber"] )
-   stderrFilename = os.path.join(reference_dir,  "%05d.stdout" % ta["linenumber"] )
-   
-   with open(stdoutFilename,'w') as out, open(stderrFilename,'w') as err:
-      output = subprocess.Popen(ta["shell_command"].strip().split(" "), stdout=out, stderr=err)
+def resultFile(outdir,ta,which):
+   "generate the filename in which we store result of reference or student test"
+   return os.path.join(outdir,  "%05d.%s" % (ta["linenumber"],which))
+ 
+def generate_stdout_and_stderr(args,ta,outdir):
+  " generate the files such as 00003.stdout and 00003.stderr for a test on line 3"
+  with open(resultFile(outdir,ta,'stdout'),'w') as out, \
+       open(resultFile(outdir,ta,'stderr'),'w') as err:
+    output = subprocess.call(ta["shell_command"].strip().split(" "), stdout=out, stderr=err)
 
     
 def processLine(args,line, linenumber):
@@ -113,7 +122,62 @@ def processLine(args,line, linenumber):
         print("linenumber: ",linenumber," line: ",line.strip())
     testAnnotation = lineToTestAnnotation(args,line,linenumber)
     return testAnnotation
- 
+
+
+def extractTestAnnotations(args):
+    " extract list of test annotations from args.script file"
+    testAnnotations=[]
+    with open(args.script) as infile:
+        linenumber = 0
+        prevLineWasTestAnnotation = False
+        for line in infile:
+            linenumber += 1
+            if prevLineWasTestAnnotation:
+               ta["shell_command"]=line
+               testAnnotations.append(ta)
+               prevLineWasTestAnnotation = False
+            else:
+              ta = processLine(args,line,linenumber)
+              if ta["isError"]:
+                 print("Error on line",linenumber," of ", args.script, " : ",ta["error"])
+              if ta["isTest"]:
+                 prevLineWasTestAnnotation = True
+    return testAnnotations
+
+def outputDir(args):
+   if args.reference:
+     return args.script + "-reference"        
+   else:
+     return args.script + "-student"
+  
+def generateOutput(args,testAnnotations):
+   
+  " generate the reference or student output by running each command "
+  output_dir = outputDir(args)
+  if (os.path.isdir(output_dir)):
+     print("Removing old directory: ",output_dir)
+     try:
+        shutil.rmtree(output_dir)
+     except Exception:
+        haltWithError("Error: was unable to remove " + output_dir)
+        
+  print("Creating directory ",output_dir,"...")
+  try:
+    os.mkdir(output_dir)
+  except Exception:
+    haltWithError("Error: was unable to create " + output_dir)
+      
+  for ta in testAnnotations:
+    generate_stdout_and_stderr(args,ta,output_dir)
+    if "filename" in ta["test"]:
+       filename = ta["test"]["filename"]
+       if args.verbose > 1:
+         print("LOOKING FOR ["+filename+"]")
+       if (os.path.isfile(filename)):
+         shutil.copy2(filename,output_dir)
+       else:
+         touch(os.path.join(output_dir,filename+"-MISSING"))
+                 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='Generate Gradescope compatible results.json for diff-based testing',
@@ -142,61 +206,29 @@ if __name__ == "__main__":
     if (not os.path.isfile(args.script)):
         haltWithError("ERROR: the script " + args.script + " does not exist")
 
-
-    testAnnotations=[]
-    with open(args.script) as infile:
-        linenumber = 0
-        prevLineWasTestAnnotation = False
-        for line in infile:
-            linenumber += 1
-            if prevLineWasTestAnnotation:
-               ta["shell_command"]=line
-               testAnnotations.append(ta)
-               prevLineWasTestAnnotation = False
-            else:
-              ta = processLine(args,line,linenumber)
-              if ta["isError"]:
-                 print("Error on line",linenumber," of ", args.script, " : ",ta["error"])
-              if ta["isTest"]:
-                 prevLineWasTestAnnotation = True
+    testAnnotations = extractTestAnnotations(args)
 
     if args.verbose > 2:
        pprint(testAnnotations)
 
-    reference_dir = args.script + "-reference"        
-
-       
-    if args.reference:
-       if (os.path.isdir(reference_dir)):
-          print("Removing old directory: ",reference_dir)
-          try:
-             shutil.rmtree(reference_dir)
-          except Exception:
-             haltWithError("Error: was unable to remove " + reference_dir)
-
-       print("Creating directory ",reference_dir,"...")
-       try:
-          os.mkdir(reference_dir)
-       except Exception:
-          haltWithError("Error: was unable to create " + reference_dir)
-
-       for ta in testAnnotations:
-          generateOutput(args,ta,reference_dir)
-          
-    else:
-
-       if (not os.path.isdir(reference_dir)):
-          haltWithError("ERROR: the directory " + reference_dir + " does not exist")
-
-       # Do what is needed to run each command and calculate the grades
-       # Then add each of those to the JSON file.
+    generateOutput(args,testAnnotations)
+    
+    if not args.reference:
        
        results = loadResultsJsonIfExists()
 
        # THIS IS THE PLACE IN THE CODE WHERE YOU ADD TESTS into the results["tests"] array.
-        
-       with open('results.json', 'w') as outfile:
-           json.dump(results, outfile)
+       # THIS IS WHERE WE WILL NEED TO DO THE DIFFS.
 
+       for ta in testAnnotations:
+          if args.verbose > 0:
+             pprint(ta)
+          pass
+       
+       with open('results.json', 'w') as outfile:
+          json.dump(results, outfile)
+
+       
+       
 
     
