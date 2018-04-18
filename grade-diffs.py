@@ -113,10 +113,21 @@ def resultFile(outdir,ta,which):
  
 def generate_stdout_and_stderr(args,ta,outdir):
   " generate the files such as 00003.stdout and 00003.stderr for a test on line 3"
+  if "timeout" in ta["test"]:
+     timeout = ta["test"]["timeout"]
+  else:
+     timeout = 2
   with open(resultFile(outdir,ta,'stdout'),'w') as out, \
        open(resultFile(outdir,ta,'stderr'),'w') as err:
-    output = subprocess.call(ta["shell_command"].strip().split(" "), stdout=out, stderr=err)
-
+    shell_command = ta["shell_command"].strip()
+    if args.verbose > 2:
+       print("About to call subprocess.call(\""+shell_command+"\")")
+    try:
+      output = subprocess.call(shell_command, stdout=out, stderr=err,shell=True,timeout=timeout)
+      return
+    except subprocess.TimeoutExpired:
+      print("WARNING: ",shell_command," TIMED OUT AFTER",timeout," seconds")
+      
     
 def processLine(args,line, linenumber):
     if (args.verbose > 1):
