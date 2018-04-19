@@ -234,7 +234,7 @@ def performDiff(args,ts,gsTest,gsTests,referenceFilename,studentFilename):
     lines_from_f1 = list(map(lambda x:x.strip(), f1.readlines()))
     lines_from_f2 = list(map(lambda x:x.strip(), f2.readlines()))
     
-    diffs = list(difflib.context_diff(lines_from_f1,lines_from_f2,
+    diffs = list(difflib.unified_diff(lines_from_f1,lines_from_f2,
                                       fromfile="expected",tofile="actual"))            
     if (len(diffs)==0):
       gsTest["score"]=gsTest["max_score"]
