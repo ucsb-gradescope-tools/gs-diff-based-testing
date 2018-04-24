@@ -94,7 +94,10 @@ def lineToTestAnnotation(args,line,linenumber):
    except (ValidationError, JSONDecodeError) as e:
        retVal["isTest"]=False       
        retVal["isError"]=True
-       retVal["error"]=e.msg
+       if (isinstance(e, JSONDecodeError)):
+           retVal["error"]=e.msg
+       else:
+           retVal["error"]=e.message
    return retVal
     
 
