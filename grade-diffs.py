@@ -44,6 +44,9 @@ testSchema ={
         "after_published",
         "visible"
       ]
+    },
+    "timeout": {
+      "type": "number"
     }
   },
   "additionalProperties": False
