@@ -75,6 +75,7 @@ In order to keep the tools simple, there are a few restrictions.   These may be 
     That is, both test annotations and the shell command that immediately follows a test annotation must appear on a single line.
 
 2.  Currently, the shell command must be something that is legal to pass to Python 3's `subprocess.call` method, using:
+   TODO: UPDATE THIS... it may be out of date...
 
    ```python
    subprocess.call(shell_command.strip().split(" "))
@@ -83,9 +84,17 @@ In order to keep the tools simple, there are a few restrictions.   These may be 
    This may restrict the use of certain shell commands, redirection options, and so forth.   Future versions might relax
    this restriction by porting some of the code from Python3 to directly interacting with the bash shell.
 
+# Reference
+
+| Annotation | Explanation |
+|-------------|--------------|
+| `"stdout": 10` | Assign 10 points based on comparing `stdout` of submission with that of reference solution |
+| `"stderr": 10` | Assign 10 points based on comparing `stderr` of submission with that of reference solution |
+
+
 # How to use these tools
 
-
+See the example templates at <https://ucsb-gradescope-tools.github.io>
 
 
 
