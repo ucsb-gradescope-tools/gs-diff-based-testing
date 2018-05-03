@@ -36,10 +36,10 @@ otherwise 0/20 points are assigned.
 ```
 #!/usr/bin/env bash
 
-# @test{"stdout":30, name:"check output of lab01 on testdata01.txt"}
+# @test{"stdout":30, "name":"check output of lab01 on testdata01.txt"}
 ./lab01 testdata01.txt
 
-# @test{"stderr":20, name:"check for error message when ./lab01 is run without an argument"}
+# @test{"stderr":20, "name":"check for error message when ./lab01 is run without an argument"}
 ./lab01 
 
 ```
@@ -56,10 +56,10 @@ are documented on [Gradescope's own autograder documentation](https://gradescope
 ```
 #!/usr/bin/env bash
 
-# @test{"filename":"outfile1.txt", points:25, name:"run ./lab02 infile1.txt outfile1.txt and check output"}
+# @test{"filename":"outfile1.txt", "points":25, "name":"run ./lab02 infile1.txt outfile1.txt and check output"}
 ./lab02 infile1.txt outfile1.txt
 
-# @test{"filename":"secretOut1.txt", points:25, name:"run ./lab02 secret test 1","visibility":"after_due_date"}
+# @test{"filename":"secretOut1.txt", "points":25, "name":"run ./lab02 secret test 1","visibility":"after_due_date"}
 ./lab02 secretIn1.txt secretOut1.txt
 
 
