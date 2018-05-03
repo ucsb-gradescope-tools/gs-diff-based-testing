@@ -1,7 +1,5 @@
 # ucsb-gradescope-tools/gs-diff-based-testing
 
-https://github.com/project-anacapa/gradescope-diff-engine
-
 An approach to diff-based autograding using Gradescope.
 
 # What these tools provide
