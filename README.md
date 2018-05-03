@@ -89,6 +89,7 @@ In order to keep the tools simple, there are a few restrictions.   These may be 
 | `"stdout": 10` | Assign 10 points based on comparing `stdout` of submission with that of reference solution |
 | `"stderr": 10` | Assign 10 points based on comparing `stderr` of submission with that of reference solution |
 | `"visibility": "hidden"` | Visibility, as explained in Gradescope's documentation.  Other values are `"after_due_date"`, `"after_published"`, and `"visible"` (default). |
+| `"timeout": 2.5` | Timeout is 2.5 seconds for this test. (default: 2.0) |
 
 
 # How to use these tools
