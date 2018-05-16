@@ -17,7 +17,7 @@ fi
 
 copy_files_from_dir_if_it_exists () {
     if [ -d $1 ]; then
-        cp -v $1/* .
+        cp -v -R $1/* .
     fi
 }
 
