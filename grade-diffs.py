@@ -302,6 +302,10 @@ if __name__ == "__main__":
           checkDiffsForFilename(args,ta,gsTests)
           
        results["tests"] += gsTests
+       if "score" in results:
+         for t in gsTests:
+           results["score"] += t["score"]
+       
           
        with open('results.json', 'w') as outfile:
           json.dump(results, outfile)
