@@ -47,6 +47,9 @@ testSchema ={
     },
     "timeout": {
       "type": "number"
+    },
+    "hide_expected": {
+      "type": "boolean"
     }
   },
   "additionalProperties": False
@@ -246,8 +249,11 @@ def performDiff(args,ts,gsTest,gsTests,referenceFilename,studentFilename):
       gsTest["score"]=gsTest["max_score"]
     else:
       gsTest["score"]=0
-      gsTest["output"]="\n".join(diffs)
-    gsTests.append(gsTest)  
+      if (not ("hide_expected" in gsTest) or not gsTest["hide_expected"]):
+        gsTest["output"]="\n".join(diffs)
+      else:
+        gsTest["output"]="diff output hidden by instructor"
+    gsTests.append(gsTest)
             
          
 if __name__ == "__main__":
