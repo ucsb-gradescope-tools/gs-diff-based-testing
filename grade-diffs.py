@@ -173,6 +173,8 @@ def outputDir(args,isReference):
 
 def makeGSTest(ta,stdout_or_stderr):
   result = {}
+  if "hide_expected" in ta["test"]:
+    result["hide_expected"]=ta["test"]["hide_expected"]
   if "visibility" in ta["test"]:
     result["visibility"]=ta["test"]["visibility"]
   if "name" in ta["test"]:
