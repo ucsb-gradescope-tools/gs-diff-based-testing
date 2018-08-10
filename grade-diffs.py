@@ -289,7 +289,7 @@ if __name__ == "__main__":
 
        reference_dir = outputDir(args,True)
        if (not os.path.isdir(reference_dir)):
-         haltWithError("Cannot perform diff; reference output "+reference_dir+"not found")
+         haltWithError("Cannot perform diff; reference output "+reference_dir+" not found")
 
       
        results = loadResultsJsonIfExists()
