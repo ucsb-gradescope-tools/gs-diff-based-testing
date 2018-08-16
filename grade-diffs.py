@@ -27,6 +27,9 @@ testSchema ={
     "stderr": {
       "type": "number"
     },
+    "return": {
+      "type": "number"
+    },
     "filename": {
       "type": "string"
     },
@@ -129,12 +132,15 @@ def generate_stdout_and_stderr(args,ta,outdir):
   else:
      timeout = 2
   with open(resultFile(outdir,ta,'stdout'),'w') as out, \
-       open(resultFile(outdir,ta,'stderr'),'w') as err:
+       open(resultFile(outdir,ta,'stderr'),'w') as err, \
+       open(resultFile(outdir,ta,'return'),'w') as ret:
     shell_command = ta["shell_command"].strip()
     if args.verbose > 2:
        print("About to call subprocess.call(\""+shell_command+"\")")
     try:
-      output = subprocess.call(shell_command, stdout=out, stderr=err,shell=True,timeout=timeout)
+      return_code = subprocess.call(shell_command, stdout=out, stderr=err,shell=True,timeout=timeout)
+      ret.write(str(return_code))
+      print("*** return_code=",return_code," *** shell_command=",shell_command)
       return
     except subprocess.TimeoutExpired:
       print("WARNING: ",shell_command," TIMED OUT AFTER",timeout," seconds")
@@ -216,6 +222,8 @@ def generateOutput(args,testAnnotations):
             touch(os.path.join(output_dir,filename+"-MISSING"))
 
 def checkDiffs(args,ta,stdout_or_stderr,gsTests):
+  print("checkDiffs for ",stdout_or_stderr)
+  pprint(ta)
   if not "test" in ta:
     return
   test = ta["test"]                        
@@ -314,6 +322,7 @@ if __name__ == "__main__":
        for ta in testAnnotations:
           checkDiffs(args,ta,"stdout",gsTests)
           checkDiffs(args,ta,"stderr",gsTests)
+          checkDiffs(args,ta,"return",gsTests)          
           checkDiffsForFilename(args,ta,gsTests)
           
        results["tests"] += gsTests
