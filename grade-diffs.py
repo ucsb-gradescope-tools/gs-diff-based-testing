@@ -101,12 +101,17 @@ def lineToTestAnnotation(args,line,linenumber):
    return retVal
     
 
-def loadResultsJsonIfExists():    
-    try:
-        results = json.load(open('results.json'))
-    except:
-        results = { "tests" : [] }
-    return results    
+def loadResultsJsonIfExists(inputfile):
+  default_results = { "tests" : [] }
+
+  if inputfile = "":
+    return default_results
+
+  try:
+    results = json.load(open(inputfile))
+  except:
+    results = default_results
+  return results    
 
 def haltWithError(message):
     print (message)
@@ -272,6 +277,8 @@ if __name__ == "__main__":
 
     parser.add_argument('--verbose', '-v', action='count', default=0)
     parser.add_argument('--reference', '-r',action='store_true')
+    parser.add_argument('--inputfile', '-i', default="results.json")
+    parser.add_argument('--outputfile', '-o', default="results.json")
     
     args = parser.parse_args()    
 
@@ -292,7 +299,7 @@ if __name__ == "__main__":
          haltWithError("Cannot perform diff; reference output "+reference_dir+" not found")
 
       
-       results = loadResultsJsonIfExists()
+       results = loadResultsJsonIfExists(args.inputfile)
 
        gsTests = []
        
@@ -305,10 +312,9 @@ if __name__ == "__main__":
        if "score" in results:
          for t in gsTests:
            results["score"] += t["score"]
-       
-          
-       with open('results.json', 'w') as outfile:
-          json.dump(results, outfile)
+                 
+       with open(args.outputfile, 'w') as outfile:
+          json.dump(results, outfile,indent=2)
 
        
        
