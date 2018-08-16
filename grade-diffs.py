@@ -104,7 +104,7 @@ def lineToTestAnnotation(args,line,linenumber):
 def loadResultsJsonIfExists(inputfile):
   default_results = { "tests" : [] }
 
-  if inputfile = "":
+  if inputfile == "":
     return default_results
 
   try:
