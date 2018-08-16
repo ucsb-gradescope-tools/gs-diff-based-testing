@@ -140,7 +140,8 @@ def generate_stdout_and_stderr(args,ta,outdir):
     try:
       return_code = subprocess.call(shell_command, stdout=out, stderr=err,shell=True,timeout=timeout)
       ret.write(str(return_code))
-      print("*** return_code=",return_code," *** shell_command=",shell_command)
+      if (args.verbose > 1):
+        print("*** return_code=",return_code," *** shell_command=",shell_command)
       return
     except subprocess.TimeoutExpired:
       print("WARNING: ",shell_command," TIMED OUT AFTER",timeout," seconds")
@@ -222,8 +223,9 @@ def generateOutput(args,testAnnotations):
             touch(os.path.join(output_dir,filename+"-MISSING"))
 
 def checkDiffs(args,ta,stdout_or_stderr,gsTests):
-  print("checkDiffs for ",stdout_or_stderr)
-  pprint(ta)
+  if args.verbose > 2:
+    print("checkDiffs for ",stdout_or_stderr)
+    pprint(ta)
   if not "test" in ta:
     return
   test = ta["test"]                        
