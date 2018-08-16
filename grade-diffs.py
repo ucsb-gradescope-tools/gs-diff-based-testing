@@ -124,7 +124,7 @@ def resultFile(outdir,ta,which):
  
 def generate_stdout_and_stderr(args,ta,outdir):
   " generate the files such as 00003.stdout and 00003.stderr for a test on line 3"
-  if "timeout" in ta["test"]:
+  if "test" in ta and "timeout" in ta["test"]:
      timeout = ta["test"]["timeout"]
   else:
      timeout = 2
@@ -139,7 +139,7 @@ def generate_stdout_and_stderr(args,ta,outdir):
     except subprocess.TimeoutExpired:
       print("WARNING: ",shell_command," TIMED OUT AFTER",timeout," seconds")
       
-    
+      
 def processLine(args,line, linenumber):
     if (args.verbose > 1):
         print("linenumber: ",linenumber," line: ",line.strip())
@@ -165,6 +165,10 @@ def extractTestAnnotations(args):
                  print("Error on line",linenumber," of ", args.script, " : ",ta["error"])
               if ta["isTest"]:
                  prevLineWasTestAnnotation = True
+              else:
+                 ta["shell_command"]=line
+                 testAnnotations.append(ta)
+                 
     return testAnnotations
 
 def outputDir(args,isReference):
@@ -201,17 +205,19 @@ def generateOutput(args,testAnnotations):
     haltWithError("Error: was unable to create " + output_dir)
       
   for ta in testAnnotations:
-    generate_stdout_and_stderr(args,ta,output_dir)
-    if "filename" in ta["test"]:
-       filename = ta["test"]["filename"]
-       if args.verbose > 1:
-         print("LOOKING FOR ["+filename+"]")
-       if (os.path.isfile(filename)):
-         shutil.copy2(filename,output_dir)
-       else:
-         touch(os.path.join(output_dir,filename+"-MISSING"))
+      generate_stdout_and_stderr(args,ta,output_dir)
+      if "test" in ta and "filename" in ta["test"]:
+        filename = ta["test"]["filename"]
+        if args.verbose > 1:
+          print("LOOKING FOR ["+filename+"]")
+          if (os.path.isfile(filename)):
+            shutil.copy2(filename,output_dir)
+          else:
+            touch(os.path.join(output_dir,filename+"-MISSING"))
 
 def checkDiffs(args,ta,stdout_or_stderr,gsTests):
+  if not "test" in ta:
+    return
   test = ta["test"]                        
   if stdout_or_stderr in test:
     gsTest = makeGSTest(ta,stdout_or_stderr)
@@ -221,6 +227,8 @@ def checkDiffs(args,ta,stdout_or_stderr,gsTests):
     performDiff(args,ta,gsTest,gsTests,referenceFilename,studentFilename)            
          
 def checkDiffsForFilename(args,ta,gsTests):
+  if not "test" in ta:
+    return
   test = ta["test"]                        
   if "filename" in test:
     filename = test["filename"]
