@@ -130,7 +130,7 @@ def generate_stdout_and_stderr(args,ta,outdir):
   if "test" in ta and "timeout" in ta["test"]:
      timeout = ta["test"]["timeout"]
   else:
-     timeout = 2
+     timeout = 5
   with open(resultFile(outdir,ta,'stdout'),'w') as out, \
        open(resultFile(outdir,ta,'stderr'),'w') as err, \
        open(resultFile(outdir,ta,'return'),'w') as ret:
@@ -189,7 +189,7 @@ def makeGSTest(ta,stdout_or_stderr):
   if "visibility" in ta["test"]:
     result["visibility"]=ta["test"]["visibility"]
   if "name" in ta["test"]:
-    result["name"]=ta["test"]["name"]
+    result["name"]=ta["test"]["name"] + " (" + stdout_or_stderr + ")"
   else:
     result["name"]="Checking " + stdout_or_stderr + " from " + ta["shell_command"].strip()
   return result
