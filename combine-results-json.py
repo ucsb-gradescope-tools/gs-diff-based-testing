@@ -47,11 +47,13 @@ if __name__ == "__main__":
       with open(infile,'r') as infile:
         try:
             contents = json.load(infile)
+            print("contents="+contents)
         except:            
-            contents =  the_test = {"name": "TEST HARNESS ERROR",
+            the_test = {"name": "TEST HARNESS ERROR",
                                     "max_score": 1,
                                     "score": 0  ,
                                     "output": fallback_message}
+            contents = {"tests" : [ the_test ] }
                         
         results_objects.append(contents)
 

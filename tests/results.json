@@ -1,0 +1,10 @@
+{
+  "tests": [
+    {
+      "name": "TEST HARNESS ERROR",
+      "score": 0,
+      "output": "\nThere may be a problem with your submission\nthat the autograder system wasn't anticipating, \nso there is no way to give a helpful error message.\n\nThere also may be a problem with the autograder configuration.\nPlease consult your instructor for assistance, and\nshow them this error message.\n",
+      "max_score": 1
+    }
+  ]
+}
