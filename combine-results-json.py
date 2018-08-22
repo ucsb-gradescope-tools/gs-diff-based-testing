@@ -52,7 +52,6 @@ if __name__ == "__main__":
       with open(infile_name,'r') as infile:
         try:
             contents = json.load(infile)
-            print("contents="+contents)
         except:            
             the_test = {"name": "TEST HARNESS ERROR",
                         "max_score": 1,

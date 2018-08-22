@@ -1,10 +1,7 @@
 {
   "tests": [
     {
-      "max_score": 1,
-      "output": "****************************************************\nThere may be a problem with your submission\nthat the autograder system wasn't anticipating, \nso there is no way to give a helpful error message.\n\nThere also may be a problem with autograder itself\nPlease consult your TA or instructor for assistance, \nand show them this error message.\n\n****************************************************\nProblem file: bad.json",
-      "score": 0,
-      "name": "TEST HARNESS ERROR"
+      "foo": "bar"
     }
   ]
 }
