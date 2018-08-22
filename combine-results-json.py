@@ -9,6 +9,15 @@ import textwrap
 import os
 import sys
 
+fallback_message = '''
+There may be a problem with your submission
+that the autograder system wasn't anticipating, 
+so there is no way to give a helpful error message.
+
+There also may be a problem with the autograder configuration.
+Please consult your instructor for assistance, and
+show them this error message.
+'''
 
          
 if __name__ == "__main__":
@@ -34,9 +43,17 @@ if __name__ == "__main__":
 
     for infile in args.jsonfiles:
       if (not os.path.isfile(infile)):
-        haltWithError("ERROR: the inputfile " + infile + " does not exist")        
+        haltWithError("ERROR: the inputfile " + infile + " does not exist")
       with open(infile,'r') as infile:
-        results_objects.append(json.load(infile))
+        try:
+            contents = json.load(infile)
+        except:            
+            contents =  the_test = {"name": "TEST HARNESS ERROR",
+                                    "max_score": 1,
+                                    "score": 0  ,
+                                    "output": fallback_message}
+                        
+        results_objects.append(contents)
 
     for ro in results_objects:
         if "tests" in ro and type(ro["tests"])==list:
@@ -44,8 +61,5 @@ if __name__ == "__main__":
         
     with open(args.outputfile, 'w') as outfile:
       json.dump(results, outfile,indent=2)
-
-       
-       
 
     
