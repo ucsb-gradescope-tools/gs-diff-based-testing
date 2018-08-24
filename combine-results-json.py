@@ -64,7 +64,19 @@ if __name__ == "__main__":
     for ro in results_objects:
         if "tests" in ro and type(ro["tests"])==list:
           results["tests"] += ro["tests"]
-        
+
+    max_score = 0
+    score = 0
+    for t in results["tests"]:
+        try:
+            max_score += t["max_score"]
+        except:
+            pass
+        try:
+            score += t["score"]
+        except:
+            pass
+    print("score=",score," max_score=",max_score)
     with open(args.outputfile, 'w') as outfile:
       json.dump(results, outfile,indent=2)
 
