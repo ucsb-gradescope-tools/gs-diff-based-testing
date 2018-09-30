@@ -27,6 +27,9 @@ testSchema ={
     "stderr": {
       "type": "number"
     },
+    "stdin": {
+      "type": "string"
+    },
     "return": {
       "type": "number"
     },
