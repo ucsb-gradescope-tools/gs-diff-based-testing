@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from __future__ import print_function
+#from __future__ import print_function
 
 import json
 import shutil
@@ -17,6 +17,8 @@ from pprint import pprint
 from pprint import pformat
 import time
 import difflib
+from io import StringIO
+
 
 testSchema ={
   "type": "object",
@@ -134,14 +136,20 @@ def generate_stdout_and_stderr(args,ta,outdir):
      timeout = ta["test"]["timeout"]
   else:
      timeout = 5
+  if "test" in ta and "stdin" in ta["test"]:
+     stdin_string=ta["test"]["stdin"]
+  else:
+     stdin_string=""
   with open(resultFile(outdir,ta,'stdout'),'w') as out, \
        open(resultFile(outdir,ta,'stderr'),'w') as err, \
        open(resultFile(outdir,ta,'return'),'w') as ret:
     shell_command = ta["shell_command"].strip()
     if args.verbose > 2:
        print("About to call subprocess.call(\""+shell_command+"\")")
-    try:
-      return_code = subprocess.call(shell_command, stdout=out, stderr=err,shell=True,timeout=timeout)
+       print("ta['test']['stdin']=",ta['test']['stdin'])
+    try:      
+      p = subprocess.run(shell_command, stdout=out, stderr=err,shell=True,timeout=timeout,input=stdin_string,encoding="utf-8")
+      return_code = p.returncode
       ret.write(str(return_code))
       if (args.verbose > 1):
         print("*** return_code=",return_code," *** shell_command=",shell_command)
